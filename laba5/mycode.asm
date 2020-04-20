@@ -4,7 +4,6 @@
 
 .data
     fileName db 30 dup(0) 
-    ;fileName db 'file.txt', 0h
     outFileName db 'outfile.txt',0h 
     fileOpened db 'file opened', 0Dh, 0Ah, '$'
     fileid dw 0
@@ -18,6 +17,7 @@
     number db 5
     emptyArgs db 'no cmd args', '$'
     error db 'error', '$'
+    endedStr db 'ended', '$'
 .code
 
 outStr macro str
@@ -34,13 +34,13 @@ readSymbol proc
     mov ah, 3Fh
     int 21h
     cmp ax, 0
-    je rewriteCall
+    je clearCall
     cmp symbol, 0Dh
     je lineEnded
     popa
     ret
-rewriteCall:
-    call rewrite    
+clearCall:
+    call clear    
 lineEnded:
     mov numOfCurrentWord, 1
     popa  
@@ -132,49 +132,23 @@ processingEnded:
     ret               
 processingArgs endp    
 
-rewrite proc
+clear proc
+clearM:    
     mov ah, 3Eh
     mov bx, fileid
     int 21h
     mov ah, 3Eh
     mov bx, outFileid
     int 21h
-    
-    mov ax, 3D01h
+    mov ah, 41h
     mov dx, offset fileName
-    int 21h
-    mov fileid, ax
-    mov ax, 3D00h
-    mov dx, offset outFileName
-    int 21h
-    mov outFileid, ax
-continueRewrite:    
-    mov ah, 3Fh
-    mov bx, outFileid
-    mov cx, 100
-    mov dx, offset buffer
-    int 21h
-    cmp ax, 100 
-    mov cx, ax
-    mov ah, 40h 
-    mov bx, fileid
-    mov dx, offset buffer
-    int 21h
-    cmp ax, 100
-    je continueRewrite
-    mov ah, 68h
-    mov bx, fileid
-    int 21h
-    mov ah, 68h
-    mov bx, outFileid
-    int 21h    
+    int 21h  
     jmp ended
-rewrite endp    
+clear endp    
 
 start:
     mov ax, @data
-    mov es, ax
-    
+    mov es, ax    
     xor cx, cx
 	mov cl, ds:[80h]			
 	mov argsSize, cl 		
@@ -194,6 +168,8 @@ continue:
     mov dx, offset outFileName
     int 21h
     mov outFileid, ax
+    cmp n, 1
+    je clearM
 mainLoop:       
     call findWordBeg
     call findEndOfWord 
@@ -212,7 +188,8 @@ opened:
 emptyArgsM:
     outStr emptyArgs
     jmp ended                              
-ended: 
+ended:
+    outStr endedStr
     mov ah, 4Ch
     int 21h
 end start
