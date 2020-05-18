@@ -218,24 +218,29 @@ main:
     pushf 
     push 0        ;send 0 to ds
     pop ds
-    mov eax, ds:[2fh*4] 
-    mov cs:[old_2fh], eax ;save default handler
+    mov ax, ds:[2fh*4]
+    mov bx, ds:[2fh*4+2] 
+    mov word ptr cs:[old_2fh], ax
+    mov word ptr cs:[old_2fh+2], bx
     
-    mov ax, cs
-    shl eax, 16
     mov ax, offset new_2fh
-    mov ds:[2fh*4], eax ;set new handler
+    mov ds:[2fh*4], ax
+    mov ax, cs
+    mov ds:[2fh*4+2], ax ;set new handler
 
     pushf 
     push 0        ;send 0 to ds
     pop ds
-    mov eax, ds:[09h*4] 
-    mov cs:[old], eax ;save default handler
+    mov ax, ds:[09h*4]
+    mov bx, ds:[09h*4+2] 
+    mov word ptr cs:[old], ax
+    mov word ptr cs:[old+2], bx
     
-    mov ax, cs
-    shl eax, 16
     mov ax, offset new_handle
-    mov ds:[09h*4], eax ;set new handler
+    mov ds:[09h*4], ax
+    mov ax, cs
+    mov ds:[09h*4+2], ax
+     ;set new handler
     sti ;allow int-s
     xor ax, ax
     mov ah, 31h     
