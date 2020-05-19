@@ -142,6 +142,10 @@ clearM:
     int 21h
     mov ah, 41h
     mov dx, offset fileName
+    int 21h
+    mov ah, 56h
+    mov dx, offset outFileName
+    mov di, offset filename
     int 21h  
     jmp ended
 clear endp    
@@ -164,7 +168,9 @@ start:
     jnc opened 
     jmp ended
 continue:      
-    mov ax, 3D01h
+    mov ah, 5Bh
+    xor cx, cx
+    mov cx, 7
     mov dx, offset outFileName
     int 21h
     mov outFileid, ax
@@ -173,7 +179,6 @@ continue:
 mainLoop:       
     call findWordBeg
     call findEndOfWord 
-    xor bx, bx
     mov bl, n
     cmp bl, numOfCurrentWord
     je skipWord
